@@ -6,7 +6,6 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "user_type" TEXT NOT NULL,
     "user_name" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -14,15 +13,16 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "UserOldPasswords" (
+CREATE TABLE "UserAccess" (
     "id" UUID NOT NULL,
     "id_user" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "user_admin" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'ativo',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "UserOldPasswords_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "UserAccess_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable

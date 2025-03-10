@@ -1,0 +1,84 @@
+----------------------------------
+----------------------------------
+linksShare
+
+
+user
+    \__ name
+    \__ last_name 
+    \__ email
+    \__ user_type
+    \__ user_name
+    \__ password
+    \__ created_at
+    \__ updated_at
+
+----------------------------------
+user_access
+    \___ id_user
+    \___ password
+    \___ status (ativo/inativo)
+    \__ created_at
+
+----------------------------------
+group_users
+    \__ user_id
+    \__ group_name
+    \__ status_group 
+    \__ img_icon_group
+
+----------------------------------
+custom_page
+    \__ links_id
+    \__ user_id
+    \__ name_page
+    \__ theme_page
+    \__ icons
+
+----------------------------------
+links
+    \__ user_id
+    \__ name
+    \__ href
+    \__ description
+    \__ view_status
+    \__ position_link
+    \__ preview_after_click
+
+----------------------------------
+clicks_link
+    \__ links_id
+    \__ address_ip
+    \__ created
+
+----------------------------------
+accessed_page
+    \__ links_id
+    \__ page_url
+    \__ address_ip
+    \__ created
+
+
+----------------------------------
+integration_platforms (spotify, youtube, reddit etc...)
+    \__ links_id
+    \__ api
+    \__ created
+
+    ╰─ npx typeorm migration:generate -n User UserAccess GroupUsers CustomPage Links ClicksLink AccessedPage IntegrationPlatforms
+   
+
+
+/*
+
+npx prisma migrate dev --name init
+
+nest g module users
+nest g controller users
+nest g service users
+
+nest g service prisma
+
+npm run start
+
+*/

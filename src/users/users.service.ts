@@ -1,14 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-
+import { AuthService } from 'src/auth/auth.service';
 @Injectable()
 export class UsersService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService, 
+        private readonly authService:AuthService
+    ) {}
 
     async create(data: any) {
-        return this.prisma.user.create({
-            data
+        const savedUser =  await this.prisma.user.create({
+            data: {
+                name: data.name,
+                lastName: data.lastName,
+                email: data.lastName,
+                userType: data.userType,
+                userName: data.userName
+            }
+
         });
+
+        const savedUserAccess =  await this.prisma.userAccess.create({
+            data: {
+                userId: savedUser.id,
+                password: await this.authService.hashPassword(data.password),
+                userAdmin: data.userAdmin,
+                status: true
+
+            }
+        });
+
+        return (savedUserAccess) ? savedUser : '';
     }
 
     async findAll() {
