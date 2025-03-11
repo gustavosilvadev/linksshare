@@ -53,7 +53,7 @@ model Link {
   description   String
   viewStatus    Boolean @map("view_status")
   positionLink  Int     @map("position_link")
-  previewAfterClick Boolean @map("preview_after_click")
+  previewBeforeClick String @map("preview_before_click")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   

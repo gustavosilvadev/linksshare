@@ -29,4 +29,10 @@ export class UsersController {
     remove(@Param('id') id: string) {
         return this.usersService.remove(id);
     }
+
+    @Post('login')
+    logIn(@Body() paramsUser: any) {
+        return this.usersService.accessUser(paramsUser);
+    }
+
 }

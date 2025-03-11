@@ -13,7 +13,7 @@ export class UsersService {
             data: {
                 name: data.name,
                 lastName: data.lastName,
-                email: data.lastName,
+                email: data.email,
                 userType: data.userType,
                 userName: data.userName
             }
@@ -55,4 +55,45 @@ export class UsersService {
             where: { id }
         })
     }
+
+    async accessUser(params: any) {
+        const email = params.email;
+      
+      
+        const user = await this.prisma.user.findFirst({
+          where: { email },
+        });
+      
+        if (!user) {
+          throw new Error("User not found");
+        }
+      
+        const dataAccess = await this.prisma.userAccess.findFirst({
+          where: {
+            userId: user.id,
+            status: true,
+          },
+          select: {
+            password: true,
+          },
+        });
+      
+        if (!dataAccess) {
+          throw new Error("User access not found or not active");
+        }
+        
+        const comparePassw = await this.authService.comparePasswords(
+          params.password,
+          dataAccess.password
+        );
+      
+        if (!comparePassw) {
+          throw new Error("Access denied");
+        }
+      
+        return "Access granted";
+      }
+      
+
 }
+
