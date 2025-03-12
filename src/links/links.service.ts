@@ -34,11 +34,15 @@ export class LinksService {
     }
 
     async update(id: string, data: any) {
-
-        // return data;
         return this.prisma.link.update({
             where: { id },
             data,
         });
+    }
+
+    async remove(id: string) {
+        return this.prisma.link.delete({
+            where: { id }
+        })
     }
 }

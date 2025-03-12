@@ -27,5 +27,8 @@ export class LinksController {
         return this.linksService.update(id, updateLinkDto);
     }
 
-
+    @Delete(':id')
+    remove(@Param('id') id: string) {
+        return this.linksService.remove(id);
+    }
 }
