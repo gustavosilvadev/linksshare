@@ -3,6 +3,25 @@ import { LinkService } from 'src/services/link/link.service';
 import { CreateLinkDto } from 'src/dto/link/create-link.dto';
 import { UpdateLinkDto } from 'src/dto/link/update-link.dto';
 
+
+interface LinkProcessingResult {
+  message: string;
+  responseLinkService?: any; 
+  href?: string; 
+  name?: string;
+}
+
+interface SuccessResponse {
+  message: string;
+  results: LinkProcessingResult[];
+}
+
+interface ErrorResponse {
+  message: string;
+}
+
+type CreateLinkResponse = SuccessResponse | ErrorResponse;
+
 @Controller('link')
 export class LinkController {
   constructor(
@@ -12,17 +31,36 @@ export class LinkController {
 
   @Post(':idUser')
   @HttpCode(200)
-  async create(@Param('idUser') idUser: string, @Body() createLinkDto: CreateLinkDto) {
-    const checkLink = await this.linkService.findLinkHrefName(createLinkDto.href, createLinkDto.name);
-
-    if(!checkLink.length) {
-        const responseLinkService = await this.linkService.create(idUser, createLinkDto);
-        
-        return { message: 'Link criado com sucesso!', responseLinkService };
+  async create(
+    @Param('idUser') idUser: string, 
+    @Body() createLinkDtos: CreateLinkDto[]
+  ): Promise<CreateLinkResponse>  {
+    
+    if (!createLinkDtos || !Array.isArray(createLinkDtos)) {
+      return { message: 'Nenhum link fornecido para criar.' };
     }
 
-    return { message: 'Link já cadastrado!' };
+    const results: LinkProcessingResult[] = await Promise.all(
+      createLinkDtos.map(async (createLinkDto) => {
+        const checkLink = await this.linkService.findLinkHrefName(
+          createLinkDto.href,
+          createLinkDto.name,
+        );
+
+        if (!checkLink.length) {
+          const responseLinkService = await this.linkService.create(idUser, createLinkDto);
+          return { message: 'Link criado com sucesso!', responseLinkService };
+        } else {
+          return { message: 'Link já cadastrado!', href: createLinkDto.href, name: createLinkDto.name };
+        }
+      }),
+    );
+
+    return { message: 'Processamento concluído!', results };
+  
+
   }
+
 
   @Get(':idUser')
   findAll(@Param('idUser') idUser: string) {
