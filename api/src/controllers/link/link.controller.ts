@@ -22,6 +22,7 @@ interface ErrorResponse {
 
 type CreateLinkResponse = SuccessResponse | ErrorResponse;
 
+type UpdateLinkResponse = SuccessResponse | ErrorResponse;
 @Controller('link')
 export class LinkController {
   constructor(
@@ -57,10 +58,8 @@ export class LinkController {
     );
 
     return { message: 'Processamento concluído!', results };
-  
 
   }
-
 
   @Get(':idUser')
   findAll(@Param('idUser') idUser: string) {
@@ -73,10 +72,32 @@ export class LinkController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateLinkDto: UpdateLinkDto) {
-    return this.linkService.update(id, updateLinkDto);
-  }
+  async update(
+    @Param('idUser') idUser: string, 
+    @Body() updateLinkDtos: UpdateLinkDto[]
+  ): Promise<UpdateLinkResponse>  {
+    
+    if (!updateLinkDtos || !Array.isArray(updateLinkDtos)) {
+      return { message: 'Nenhum link fornecido para atualizar.' };
+    }
 
+    const results: LinkProcessingResult[] = await Promise.all(
+      updateLinkDtos.map(async (updateLinkDto) => {
+        let checkLinkExists = await this.linkService.findOne(updateLinkDto.id);
+
+        if(checkLinkExists) {
+          const responseLinkService = await this.linkService.update(updateLinkDto);
+          return { message: 'Link atualizado com sucesso!', responseLinkService };
+        }else{
+
+          return { message: 'Link não encontrado!', checkLinkExists};
+        }
+        
+      }),
+    );
+
+    return {message: 'Atualizado com sucesso!', results};
+  }
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.linkService.remove(id);

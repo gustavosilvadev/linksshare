@@ -5,9 +5,10 @@ import { PrismaService } from 'prisma/prisma.service';
 import { UserModule } from './modules/user/user.module';
 import { UserService } from './services/user/user.service';
 import { LinkModule } from './modules/link/link.module';
+import { LogPageViewModule } from './modules/log-page-view/log-page-view.module';
 
 @Module({
-  imports: [PrismaModule, UserModule, LinkModule],
+  imports: [PrismaModule, UserModule, LinkModule, LogPageViewModule],
   providers: [PrismaService, UserService],
 })
 export class AppModule {}

@@ -3,7 +3,6 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateLinkDto } from 'src/dto/link/create-link.dto';
 import { UpdateLinkDto } from 'src/dto/link/update-link.dto';
-
 @Injectable()
 export class LinkService {
   constructor(private prisma: PrismaService) {}
@@ -54,11 +53,12 @@ export class LinkService {
     });
   }
 
-  update(id: string, updateLinkDto: UpdateLinkDto) {
+  update(updateLinkDto: UpdateLinkDto) {
     return this.prisma.link.update({
-      where: { id },
-      data: updateLinkDto,
-    });
+      where: { id : updateLinkDto.id },
+      data: updateLinkDto
+    })
+
   }
 
   remove(id: string) {

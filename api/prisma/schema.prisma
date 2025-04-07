@@ -8,6 +8,7 @@ datasource db {
 }
 
 model User {
+  @@map("user")
   id        String  @id @default(uuid()) @db.Uuid
   name      String
   lastName  String  @map("last_name")
@@ -23,6 +24,7 @@ model User {
 }
 
 model UserAccess {
+  @@map("user_access")
   id        String   @id @default(uuid()) @db.Uuid
   password  String
   userAdmin Boolean  @map("user_admin")
@@ -35,6 +37,7 @@ model UserAccess {
 }
 
 model GroupUser {
+  @@map("group_user")
   id          String   @id @default(uuid()) @db.Uuid
   groupName   String   @map("group_name")
   statusGroup Boolean   @default(true) @map("status_group")
@@ -46,6 +49,7 @@ model GroupUser {
 }
 
 model Link {
+  @@map("link")
   id            String   @id @default(uuid()) @db.Uuid
   name          String
   href          String
@@ -58,16 +62,14 @@ model Link {
   userId      String   @db.Uuid  @map("id_user") 
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  clicksLink ClicksLink[]
-
 }
 
-model ClicksLink {
+model LogPageView {
+  @@map("log_page_view")
   id            String   @id @default(uuid()) @db.Uuid
-  addressIp String @map("address_ip")
+  ipAddress String @map("ip_address")
+  pageUrl String @map("page_url")
   createdAt DateTime @default(now()) @map("created_at")
-  linkId      String   @db.Uuid  @map("id_link") 
-  link        Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
 
 }

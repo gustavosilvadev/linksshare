@@ -1,7 +1,9 @@
 import { IsString, IsBoolean, IsNumber, MinLength, MaxLength } from 'class-validator';
 
 export class UpdateLinkDto {
-
+  @IsString()
+  id: string;
+  
   @IsString()
   @MinLength(3)
   @MaxLength(50)
