@@ -19,18 +19,32 @@ export class LogPageViewInterceptor implements NestInterceptor {
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
 
+        const existingView = await this.prisma.logPageView.findFirst({
+            where: {
+              ipAddress,
+              pageUrl,
+              accessedAt: {
+                gte: today,
+                lt: tomorrow,
+              },
+            },
+          });
+
+
         // Registrar o acesso no banco de dados
-
-        await this.prisma.log_page_view.create({
-          data: {
-            ipAddress,
-            pageUrl,
-            accessedAt: new Date(),
-          },
-        });
-
+        if (!existingView) {
+            await this.prisma.logPageView.create({
+            data: {
+                ipAddress,
+                pageUrl,
+                accessedAt: new Date(),
+            },
+            });
+        }
+        console.log(`Acesso registrado para IP: ${ipAddress} na página: ${pageUrl}.`);
+/*
         // Opcional: Contabilizar acessos diários (exemplo simples)
-        const dailyCount = await this.prisma.log_page_view.count({
+        const dailyCount = await this.prisma.logPageView.count({
           where: {
             pageUrl,
             accessedAt: {
@@ -42,6 +56,9 @@ export class LogPageViewInterceptor implements NestInterceptor {
         });
 
         console.log(`Acesso registrado para IP: ${ipAddress} na página: ${pageUrl}. Contagem diária (única por IP): ${dailyCount}`);
+*/        
+
+
       } catch (error) {
         console.error('Erro ao registrar acesso:', error);
       }

@@ -28,8 +28,15 @@ export class UserService {
     
   }
 
-  findAll() {
-    return this.prisma.user.findMany();
+  async findAll() {
+    try {
+      const allRecords =  await this.prisma.user.findMany();
+      return allRecords;
+      
+    } catch (error) {
+      console.error(`Erro ao buscar registros da tabela User:`, error);
+      return [];
+    }
   }
 
   findOne(id: string) {

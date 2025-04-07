@@ -54,12 +54,12 @@ model Link {
   name          String
   href          String
   description   String
-  viewStatus    Boolean @map("view_status")
-  positionLink  Int     @map("position_link")
-  previewBeforeClick String @map("preview_before_click")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  userId      String   @db.Uuid  @map("id_user") 
+  viewStatus    Boolean  @map("view_status")
+  positionLink  Int      @map("position_link")
+  previewBeforeClick   String @map("preview_before_click")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  userId        String   @db.Uuid  @map("id_user") 
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -67,9 +67,9 @@ model Link {
 model LogPageView {
   @@map("log_page_view")
   id            String   @id @default(uuid()) @db.Uuid
-  ipAddress String @map("ip_address")
-  pageUrl String @map("page_url")
-  createdAt DateTime @default(now()) @map("created_at")
+  ipAddress     String   @map("ip_address")
+  pageUrl       String   @map("page_url")
+  accessedAt    DateTime @map("created_at")
 
 
 }
