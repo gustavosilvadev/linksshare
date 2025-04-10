@@ -43,6 +43,10 @@ export class UserService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  async findByUserName(userName: string) {
+    return await this.prisma.user.findFirst({ where: { userName:userName } })
+  }
+
   findUserIdEmail(userName: string, emailUser: string) {
     return this.prisma.user.findMany({ 
       where: { 
@@ -58,6 +62,14 @@ export class UserService {
     return this.prisma.user.update({
       where: { id },
       data: updateUserDto,
+    });
+  }
+
+  async updateKeyId(userId: string, apiKey: any ) {
+
+    return await this.prisma.userAccess.update({
+      where: { userId: userId },
+      data: { apiKey: apiKey }
     });
   }
 

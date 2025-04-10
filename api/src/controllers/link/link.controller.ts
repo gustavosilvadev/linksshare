@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, HttpCode, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Request, HttpCode, NotFoundException } from '@nestjs/common';
 import { LinkService } from 'src/services/link/link.service';
 import { CreateLinkDto } from 'src/dto/link/create-link.dto';
 import { UpdateLinkDto } from 'src/dto/link/update-link.dto';
 
+import { ApiKeyAuthGuards } from 'src/services/auth/guards/api-key-auth.guard';
+import { Request as ExpressRequest } from 'express';
 
 interface LinkProcessingResult {
   message: string;
@@ -21,14 +23,22 @@ interface ErrorResponse {
 }
 
 type CreateLinkResponse = SuccessResponse | ErrorResponse;
-
 type UpdateLinkResponse = SuccessResponse | ErrorResponse;
+
 @Controller('link')
 export class LinkController {
   constructor(
     private readonly linkService: LinkService,
 
 ) {}
+
+// Teste 0001 >>>>>>>>>>>>>>>>>>>>>>
+  @UseGuards(ApiKeyAuthGuards)
+  @Get('resource')
+  getResource(@Request() req: ExpressRequest) {
+    return { message: 'Recurso protegido acessado!', user: req['user'] };
+  }
+// Teste 0001 >>>>>>>>>>>>>>>>>>>>>>
 
   @Post(':idUser')
   @HttpCode(200)

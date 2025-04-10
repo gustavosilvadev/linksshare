@@ -25,6 +25,9 @@ export class UserAccessService {
     }
   }
 
+  findByUserId(userId: string) {
+    return this.prisma.userAccess.findFirst({ where: { userId: userId }})
+  }
 
   findOne(id: string) {
     return this.prisma.userAccess.findUnique({ where: { id } });

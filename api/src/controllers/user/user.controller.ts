@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Put, Param, Delete, HttpCode, NotFoundException } from '@nestjs/common';
 import { UserService } from 'src/services/user/user.service';
-import { UserAccessService } from 'src/services/user/user-access-service';
+import { UserAccessService } from 'src/services/user/user-access.service';
 import { CreateUserDto } from 'src/dto/user/create-user.dto';
 import { UpdateUserDto } from 'src/dto/user/update-user.dto';
 
