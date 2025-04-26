@@ -1,8 +1,8 @@
-import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateUserDto } from 'src/dto/user/create-user.dto';
 import { UpdateUserDto } from 'src/dto/user/update-user.dto';
-
+import { validate as isUuid} from 'uuid';
 
 @Injectable()
 export class UserService {
@@ -39,10 +39,31 @@ export class UserService {
     }
   }
 
-  findOne(id: string) {
-    return this.prisma.user.findUnique({ where: { id } });
-  }
+  async findOne(id: string) {
+    try {
+      if (!isUuid(id)) {
+        throw new NotFoundException(`ID '${id}' is not valid UUID`);
+      }
 
+      const user = await this.prisma.user.findUnique({ where: { id } });
+      
+      if (!user) {
+        throw new NotFoundException(`No links found for user with ID '${id}'`);
+      }
+
+      return user;
+      
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes('UUID')
+      ) {
+        throw new NotFoundException(`Invalid UUID: '${id}'`);
+      }
+
+      throw error;
+    }
+  }
   async findByUserName(userName: string) {
     return await this.prisma.user.findFirst({ where: { userName:userName } })
   }
@@ -65,11 +86,10 @@ export class UserService {
     });
   }
 
-  async updateKeyId(userId: string, apiKey: any ) {
-
+  async updateKeyId(userId: string, apiKey: string ) {
     return await this.prisma.userAccess.update({
       where: { userId: userId },
-      data: { apiKey: apiKey }
+      data: { apiKey: apiKey } 
     });
   }
 
