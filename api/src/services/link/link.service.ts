@@ -3,18 +3,22 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateLinkDto } from 'src/dto/link/create-link.dto';
 import { UpdateLinkDto } from 'src/dto/link/update-link.dto';
-import { validate as isUuid} from 'uuid';
+import { validate as isUuid, v4 as uuidv4} from 'uuid';
 @Injectable()
 export class LinkService {
   constructor(private prisma: PrismaService) {}
 
   async create(id: string,createLinkDto: CreateLinkDto) {
+
+    const paramName = uuidv4().substring(0,8);
+
     try {
       return await this.prisma.link.create({ 
         data: {
 
             name:createLinkDto.name,
             href:createLinkDto.href,
+            hrefShortener: paramName,
             description:createLinkDto.description,
             viewStatus:createLinkDto.viewStatus,
             positionLink:createLinkDto.positionLink,
@@ -94,4 +98,6 @@ export class LinkService {
   remove(id: string) {
     return this.prisma.link.delete({ where: { id } });
   }
+
+
 }

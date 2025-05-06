@@ -5,24 +5,30 @@ import { PrismaService } from 'prisma/prisma.service';
 export class ProfileService {
     constructor(private prisma: PrismaService) {}
   
-    async findLinksByUserName(userName : string) 
+    async findPageByNameParam(paramName : string) 
     {
         try {
-            if (!userName) {
-                throw new NotFoundException(`'${userName}' is not valid`);
-            }
-
-            const user = await this.prisma.user.findFirst({ where: { userName: userName } });
+            const user = await this.prisma.user.findFirst({ where: { userName: paramName } });
             
             if (!user) {
-                throw new NotFoundException(`Usuário não encontrado`);
+
+                const addressLink = await this.prisma.link.findFirst({ where: { hrefShortener: paramName} });
+                
+                if(!addressLink){
+                    throw new NotFoundException(`Page not found`);
+                }else {
+
+                    return addressLink.href;
+                }
+            }else{
+                const links = await this.prisma.link.findMany({ where: { userId: user.id, viewStatus: true } });
+                return links;
             }
-            const links = await this.prisma.link.findMany({ where: { userId: user.id } });
-            return links;
+
             
         } catch (error) {
             if (error instanceof Error) {
-                throw new NotFoundException(`UserName inválido: '${userName}'`);
+                throw new NotFoundException(`Invalid Address : '${paramName}'`);
             }
     
             throw error;

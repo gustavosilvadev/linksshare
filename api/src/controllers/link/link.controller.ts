@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Request, HttpCode, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Request, HttpCode, NotFoundException, Req } from '@nestjs/common';
 import { AuthGuard } from 'src/services/auth/guards/auth.guard';
 import { Request as ExpressRequest } from 'express';
 import { LinkService } from 'src/services/link/link.service';
@@ -38,7 +38,8 @@ export class LinkController {
   @Post()
   @HttpCode(200)
   async create(
-    @Body() createLinkDtos: CreateLinkDto[]
+    @Body() createLinkDtos: CreateLinkDto[],
+    @Req() req: ExpressRequest
   ): Promise<CreateLinkResponse>  {
     const results: LinkProcessingResult[] = await Promise.all(
       createLinkDtos.map(async (createLinkDto) => {
@@ -101,7 +102,7 @@ export class LinkController {
       }
 
       const responseLinkService = await this.linkService.update(updateLinkDto);
-      return { message: 'Link atualizado com sucesso!', results: [{ message: 'Link atualizado com sucesso!', responseLinkService: { ...responseLinkService, id } }] }; // Formate a resposta para corresponder a UpdateLinkResponse
+      return { message: 'Link atualizado com sucesso!', results: [{ message: 'Link atualizado com sucesso!', responseLinkService: { ...responseLinkService, id } }] };
     } catch (error) {
       console.error('Erro ao atualizar link:', error);
       return { message: 'Erro ao processar a atualização do link.' };

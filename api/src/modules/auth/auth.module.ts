@@ -1,4 +1,3 @@
-// auth.module.ts
 import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from 'src/services/auth/auth.service';
 import { AuthController } from 'src/controllers/auth/auth.controller';

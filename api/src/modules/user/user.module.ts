@@ -1,4 +1,3 @@
-// user.module.ts
 import { Module, forwardRef } from '@nestjs/common';
 import { UserService } from 'src/services/user/user.service';
 import { UserController } from 'src/controllers/user/user.controller';
