@@ -51,19 +51,33 @@ model GroupUser {
 }
 
 model Link {
-  id            String   @id @default(uuid()) @db.Uuid
-  name          String
-  href          String
-  description   String
-  viewStatus    Boolean  @map("view_status")
-  positionLink  Int      @map("position_link")
-  previewBeforeClick     String @map("preview_before_click")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  userId        String   @db.Uuid  @map("id_user") 
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  href            String
+  hrefShortener   String?  @default("") @map("href_shortener")
+  description     String
+  viewStatus      Boolean  @map("view_status")
+  positionLink    Int      @map("position_link")
+  previewBeforeClick       String @map("preview_before_click")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  userId          String   @db.Uuid  @map("id_user") 
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  logClickLinkView  LogClickLinkView[]
+
   @@map("link")
+
+}
+
+model LogClickLinkView {
+  id     String @id @default(uuid()) @db.Uuid
+  linkId String @db.Uuid @map("link_id")
+
+  link   Link   @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  @@map("log_click_link")
+
 }
 
 model LogPageView {

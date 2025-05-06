@@ -1,19 +1,24 @@
 
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateLinkDto } from 'src/dto/link/create-link.dto';
 import { UpdateLinkDto } from 'src/dto/link/update-link.dto';
+import { validate as isUuid, v4 as uuidv4} from 'uuid';
 @Injectable()
 export class LinkService {
   constructor(private prisma: PrismaService) {}
 
   async create(id: string,createLinkDto: CreateLinkDto) {
+
+    const paramName = uuidv4().substring(0,8);
+
     try {
       return await this.prisma.link.create({ 
         data: {
 
             name:createLinkDto.name,
             href:createLinkDto.href,
+            hrefShortener: paramName,
             description:createLinkDto.description,
             viewStatus:createLinkDto.viewStatus,
             positionLink:createLinkDto.positionLink,
@@ -28,18 +33,47 @@ export class LinkService {
     }
   }
 
-  findAllLinksByUser(idUser: string) {
-    return this.prisma.link.findMany({ 
+  async findAllLinksByUser(idUser: string) {
+    try {
+      if (!isUuid(idUser)) {
+        throw new NotFoundException(`ID '${idUser}' is not valid UUID`);
+      }
+
+      const resultLinks = await this.prisma.link.findMany({ 
         where: { 
-            user: {
-                id: idUser
-            }
+          userId: idUser
         }
-    });
+      });
+
+      if (!resultLinks || resultLinks.length === 0) {
+        throw new NotFoundException(`No links found for user with ID '${idUser}'`);
+      }
+
+      return resultLinks;
+      
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes('UUID')
+      ) {
+        throw new NotFoundException(`Invalid UUID: '${idUser}'`);
+      }
+
+      throw error;
+    }
   }
 
   findOne(id: string) {
-    return this.prisma.link.findUnique({ where: { id } });
+    try {
+      return this.prisma.link.findUnique({ where: { id } });
+      
+    } catch (error) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'User not found',
+        error: error
+      });
+    }
   }
 
   findLinkHrefName(href: string, name: string) {
@@ -64,4 +98,6 @@ export class LinkService {
   remove(id: string) {
     return this.prisma.link.delete({ where: { id } });
   }
+
+
 }

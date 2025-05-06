@@ -15,8 +15,6 @@ export class AuthController {
             throw new UnauthorizedException('Credenciais inválidas');
 
         }
-
         return this.authService.login(user);
     }
-
 }

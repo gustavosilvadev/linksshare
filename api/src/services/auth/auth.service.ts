@@ -4,8 +4,6 @@ import { UserAccessService } from "../user/user-access.service";
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4} from "uuid";
-// import { identity } from "rxjs";
-
 
 @Injectable()
 export class AuthService {
@@ -17,19 +15,20 @@ export class AuthService {
     ) {}
 
     async validateUser(username: string, pass: string): Promise<any> {
+
         const user = await this.userService.findByUserName(username);
+
         if(!user?.id) {
             throw new Error("Usuário não encontrado ou Id indefinido!");
         }
-
-        const userAccess = await this.userAccessService.findOne(user?.id);
+        const userAccess = await this.userAccessService.findByUserId(user.id);
 
         if(!userAccess?.password) {
             throw new Error("Usuário sem permissão de acesso!");
         }
+
         if(user && (await bcrypt.compare(pass, userAccess?.password))) {
-            const { password, ...result} = userAccess;
-            return result;
+            return user;
         }
 
         return null;
@@ -37,9 +36,7 @@ export class AuthService {
 
     async login(user: any): Promise<{ access_token: string, apiKey: string}> {
         const apiKey = uuidv4();
-
-        await this.userService.updateKeyId(user.id, { apiKey });
-
+        await this.userService.updateKeyId(user.id, apiKey);
         const payload = { sub: user.id, username: user.username, apiKey: apiKey };
 
         return {
@@ -50,8 +47,7 @@ export class AuthService {
 
     async generateApiKey(userId: string): Promise<string> {
         const apiKey = uuidv4();
-        await this.userService.updateKeyId(userId, { apiKey });
+        await this.userService.updateKeyId(userId, apiKey);
         return apiKey;
-
     }
 }

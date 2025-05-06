@@ -1,16 +1,17 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Request, HttpCode, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Request, HttpCode, NotFoundException, Req } from '@nestjs/common';
+import { AuthGuard } from 'src/services/auth/guards/auth.guard';
+import { Request as ExpressRequest } from 'express';
 import { LinkService } from 'src/services/link/link.service';
+import { UserService } from 'src/services/user/user.service';
 import { CreateLinkDto } from 'src/dto/link/create-link.dto';
 import { UpdateLinkDto } from 'src/dto/link/update-link.dto';
 
-import { ApiKeyAuthGuards } from 'src/services/auth/guards/api-key-auth.guard';
-import { Request as ExpressRequest } from 'express';
-
 interface LinkProcessingResult {
   message: string;
-  responseLinkService?: any; 
-  href?: string; 
+  responseLinkService?: any;
+  href?: string;
   name?: string;
+  id?: string;
 }
 
 interface SuccessResponse {
@@ -29,87 +30,103 @@ type UpdateLinkResponse = SuccessResponse | ErrorResponse;
 export class LinkController {
   constructor(
     private readonly linkService: LinkService,
+    private readonly userService: UserService
 
 ) {}
 
-// Teste 0001 >>>>>>>>>>>>>>>>>>>>>>
-  @UseGuards(ApiKeyAuthGuards)
-  @Get('resource')
-  getResource(@Request() req: ExpressRequest) {
-    return { message: 'Recurso protegido acessado!', user: req['user'] };
-  }
-// Teste 0001 >>>>>>>>>>>>>>>>>>>>>>
-
-  @Post(':idUser')
+  @UseGuards(AuthGuard)
+  @Post()
   @HttpCode(200)
   async create(
-    @Param('idUser') idUser: string, 
-    @Body() createLinkDtos: CreateLinkDto[]
+    @Body() createLinkDtos: CreateLinkDto[],
+    @Req() req: ExpressRequest
   ): Promise<CreateLinkResponse>  {
-    
-    if (!createLinkDtos || !Array.isArray(createLinkDtos)) {
-      return { message: 'Nenhum link fornecido para criar.' };
-    }
-
     const results: LinkProcessingResult[] = await Promise.all(
       createLinkDtos.map(async (createLinkDto) => {
-        const checkLink = await this.linkService.findLinkHrefName(
-          createLinkDto.href,
-          createLinkDto.name,
-        );
 
-        if (!checkLink.length) {
-          const responseLinkService = await this.linkService.create(idUser, createLinkDto);
-          return { message: 'Link criado com sucesso!', responseLinkService };
-        } else {
-          return { message: 'Link já cadastrado!', href: createLinkDto.href, name: createLinkDto.name };
+        try {
+          const checkUser = await this.userService.findOne(createLinkDto.userId);
+
+          if (!checkUser) {
+            return { message: 'Usuário não encontrado!'};
+          }
+
+          const checkLink = await this.linkService.findLinkHrefName(
+            createLinkDto.href,
+            createLinkDto.name,
+          );
+
+          if (!checkLink.length) {
+            const responseLinkService = await this.linkService.create(createLinkDto.userId, createLinkDto);
+            return { message: 'Link criado com sucesso!', responseLinkService };
+          } else {
+            return { message: 'Link já cadastrado!', href: createLinkDto.href, name: createLinkDto.name };
+          }
+        } catch (error) {
+          console.error('Erro ao criar link:', error);
+          return { message: 'Erro ao processar a criação do link.' };
         }
       }),
     );
 
     return { message: 'Processamento concluído!', results };
-
   }
 
+  @UseGuards(AuthGuard)
   @Get(':idUser')
-  findAll(@Param('idUser') idUser: string) {
+  findAll(@Param('idUser') idUser: string, @Request() req: ExpressRequest) {
+    if (req['user']?.sub !== idUser) {
+      throw new NotFoundException('Links não encontrados para este usuário.');
+    }
     return this.linkService.findAllLinksByUser(idUser);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.linkService.findOne(id);
-  }
-
+  @UseGuards(AuthGuard)
   @Put(':id')
   async update(
-    @Param('idUser') idUser: string, 
-    @Body() updateLinkDtos: UpdateLinkDto[]
+    @Param('id') id: string,
+    @Body() updateLinkDto: UpdateLinkDto,
+    @Request() req: ExpressRequest
   ): Promise<UpdateLinkResponse>  {
-    
-    if (!updateLinkDtos || !Array.isArray(updateLinkDtos)) {
-      return { message: 'Nenhum link fornecido para atualizar.' };
+
+    try {
+      const existingLink = await this.linkService.findOne(id);
+      if (!existingLink) {
+        return { message: 'Link não encontrado!'};
+      }
+      
+      const linkUserId = existingLink.userId; 
+
+      if (req['user']?.sub !== linkUserId) {
+        throw new NotFoundException('Você não tem permissão para atualizar este link.');
+      }
+
+      const responseLinkService = await this.linkService.update(updateLinkDto);
+      return { message: 'Link atualizado com sucesso!', results: [{ message: 'Link atualizado com sucesso!', responseLinkService: { ...responseLinkService, id } }] };
+    } catch (error) {
+      console.error('Erro ao atualizar link:', error);
+      return { message: 'Erro ao processar a atualização do link.' };
     }
-
-    const results: LinkProcessingResult[] = await Promise.all(
-      updateLinkDtos.map(async (updateLinkDto) => {
-        let checkLinkExists = await this.linkService.findOne(updateLinkDto.id);
-
-        if(checkLinkExists) {
-          const responseLinkService = await this.linkService.update(updateLinkDto);
-          return { message: 'Link atualizado com sucesso!', responseLinkService };
-        }else{
-
-          return { message: 'Link não encontrado!', checkLinkExists};
-        }
-        
-      }),
-    );
-
-    return {message: 'Atualizado com sucesso!', results};
   }
+
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.linkService.remove(id);
+  async remove(@Param('id') id: string, @Request() req: ExpressRequest) {
+    try {
+      const existingLink = await this.linkService.findOne(id);
+      if (!existingLink) {
+        throw new NotFoundException('Link não encontrado!');
+      }
+
+      if (req['user']?.sub !== existingLink.userId) {
+        throw new NotFoundException('Você não tem permissão para excluir este link.');
+      }
+
+      await this.linkService.remove(id);
+      return { message: 'Link removido com sucesso!' };
+    } catch (error) {
+      console.error('Erro ao remover link:', error);
+      return { message: 'Erro ao processar a remoção do link.' };
+    }
   }
 }
